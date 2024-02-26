@@ -38,6 +38,7 @@ environment levels.
 my-terraform
 ├── main.tf
 ├── dev.tfvars
+├── prod.tfvars
 ```
 
 #### Generates the following Atlantis configuration:
@@ -73,7 +74,8 @@ workflows:
           extra_args:
           - -var-file=dev.tfvars
     apply:
-    - apply
+      steps:
+      - apply
   my-terraform-prod:
     plan:
       steps:
@@ -82,7 +84,8 @@ workflows:
           extra_args:
           - -var-file=prod.tfvars
     apply:
-    - apply
+      steps:
+      - apply
 ```
 
 ## Why you should use it?
@@ -103,8 +106,31 @@ runtime.
 | `--automerge`                 | Enable auto merge.                                                                                               | false         |
 | `--autoplan`                  | Enable auto plan.                                                                                                | false         |
 | `--default-terraform-version` | Default terraform version to run for Atlantis. Default is determined by the Terraform version constraints.       | ""            |
+| `--debug`                     | Enable debug logging.                                                                                            | false         |
 | `--multienv`                  | Enable injection of environment specific environment variables to each workflow.                                 | false         |
 | `--output`                    | Path of the file where configuration will be generated, usually `atlantis.yaml`. Default is to write to `stdout` | `stdout`      |
 | `--parallel`                  | Enables plans and applys to happen in parallel.                                                                  | false         |
 | `--root`                      | Path to the root directory of the git repo you want to build config for. Default is current dir.                 | `.`           |
 | `--use-workspaces`            | Whether to use Terraform workspaces for projects.                                                                | false         |
+
+## Multienv
+When `--multienv` is enabled, prefixed environment variables will be
+stripped of their prefix and injected into each workflow for the duration
+the workflow is run during plan/apply stages.
+
+### Example
+
+_dev.tfvars_:
+
+- `DEV_FOO_VAR="BAR"` -> `FOO_VAR="BAR"`
+- `DEV_AWS_ACCESS_KEY="..."` -> `AWS_ACCESS_KEY="..."`
+
+_stg.tfvars_:
+
+- `STG_FOO_VAR="BAR"` -> `FOO_VAR="BAR"`
+- `STG_AWS_ACCESS_KEY="..."` -> `AWS_ACCESS_KEY="..."`
+
+..and so on.
+
+Reference:
+[Multienv](https://www.runatlantis.io/docs/custom-workflows.html#step)
