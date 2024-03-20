@@ -29,60 +29,14 @@ func Test_NewFrom(t *testing.T) {
 					Automerge:     ptr(false),
 					ParallelPlan:  ptr(false),
 					ParallelApply: ptr(false),
-					Workflows: map[string]raw.Workflow{
-						"test-dev": {
-							Plan: &raw.Stage{
-								Steps: []raw.Step{
-									{
-										Key: ptr("init"),
-									},
-									{
-										Map: map[string]map[string][]string{
-											"plan": {"extra_args": []string{"-var-file=vars/dev.tfvars"}},
-										},
-									},
-								},
-							},
-							Apply: &raw.Stage{
-								Steps: []raw.Step{
-									{
-										Key: ptr("apply"),
-									},
-								},
-							},
-						},
-						"test-stg": {
-							Plan: &raw.Stage{
-								Steps: []raw.Step{
-									{
-										Key: ptr("init"),
-									},
-									{
-										Map: map[string]map[string][]string{
-											"plan": {"extra_args": []string{"-var-file=vars/nested/stg.tfvars"}},
-										},
-									},
-								},
-							},
-							Apply: &raw.Stage{
-								Steps: []raw.Step{
-									{
-										Key: ptr("apply"),
-									},
-								},
-							},
-						},
-					},
 					Projects: []raw.Project{
 						{
-							Name:     ptr("test-dev"),
-							Dir:      ptr("test"),
-							Workflow: ptr("test-dev"),
+							Name: ptr("test-dev"),
+							Dir:  ptr("test"),
 						},
 						{
-							Name:     ptr("test-stg"),
-							Dir:      ptr("test"),
-							Workflow: ptr("test-stg"),
+							Name: ptr("test-stg"),
+							Dir:  ptr("test"),
 						},
 					},
 				},

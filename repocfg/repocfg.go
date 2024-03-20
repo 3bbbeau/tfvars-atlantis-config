@@ -15,7 +15,6 @@ type Options struct {
 	Autoplan                bool
 	DefaultTerraformVersion string
 	Parallel                bool
-	MultiEnv                bool
 	UseWorkspaces           bool
 }
 
@@ -58,19 +57,6 @@ func NewRepoCfg(components []Component, opts Options) (*ExtRawRepoCfg, error) {
 
 	repoCfg.Projects = append(repoCfg.Projects, projects...)
 
-	workflows := map[string]raw.Workflow{}
-	for _, c := range components {
-		generated, err := WorkflowsFrom(c, opts)
-		if err != nil {
-			return nil, fmt.Errorf("failed while creating workflows with component %+v: %w", c, err)
-		}
-		for _, wf := range generated {
-			workflows[wf.Name] = wf.Workflow
-		}
-	}
-
-	repoCfg.Workflows = workflows
-
 	return repoCfg, nil
 }
 
@@ -80,20 +66,9 @@ func (rc *ExtRawRepoCfg) MarshalYAML() (interface{}, error) {
 		{Key: "automerge", Value: rc.Automerge},
 		{Key: "parallel_plan", Value: rc.ParallelPlan},
 		{Key: "parallel_apply", Value: rc.ParallelApply},
+
 		{Key: "projects", Value: rc.Projects},
 	}
 
-	workflows := yaml.MapSlice{}
-	for name, wf := range rc.Workflows {
-		workflows = append(workflows, yaml.MapItem{
-			Key: name,
-			Value: yaml.MapSlice{
-				{Key: "plan", Value: wf.Plan},
-				{Key: "apply", Value: wf.Apply},
-			},
-		})
-	}
-
-	m = append(m, yaml.MapItem{Key: "workflows", Value: workflows})
 	return m, nil
 }

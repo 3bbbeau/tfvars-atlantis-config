@@ -27,7 +27,7 @@ func Test_Ptr(t *testing.T) {
 }
 
 // Tests the friendlyName helper function. Given a path and an environment it
-// should provide a contextual name to be used for Atlantis projects and workflows.
+// should provide a contextual name to be used for Atlantis projects.
 func Test_FriendlyName(t *testing.T) {
 	t.Parallel()
 

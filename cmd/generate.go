@@ -38,7 +38,6 @@ func NewFlags() (*Flags, error) {
 		AutoPlan:                false,
 		DefaultTerraformVersion: "",
 		Root:                    pwd,
-		MultiEnv:                false,
 		Output:                  "",
 		Parallel:                false,
 		UseWorkspaces:           false,
@@ -52,7 +51,6 @@ func (flags *Flags) AddFlags(cmd *cobra.Command) {
 	cmd.Flags().BoolVar(&flags.Parallel, "parallel", flags.Parallel, "Enables plans and applys to happen in parallel. Default is disabled")
 	cmd.Flags().StringVar(&flags.Output, "output", flags.Output, "Path of the file where configuration will be generated. Default is stdout")
 	cmd.Flags().StringVar(&flags.Root, "root", flags.Root, "Path to the root directory of the git repo you want to build config for. Default is current dir")
-	cmd.Flags().BoolVar(&flags.MultiEnv, "multienv", flags.MultiEnv, "Enable injection of environment specific environment variables to each workflow. Default is disabled")
 	cmd.Flags().StringVar(&flags.DefaultTerraformVersion, "terraform-version", flags.DefaultTerraformVersion, "Default terraform version to run for Atlantis. Default is determined by the Terraform version constraints.")
 	cmd.Flags().BoolVar(&flags.UseWorkspaces, "use-workspaces", flags.UseWorkspaces, "Use workspaces for projects. Default is disabled")
 
@@ -67,7 +65,6 @@ func (flags *Flags) toOptions() repocfg.Options {
 		Automerge:               flags.AutoMerge,
 		Autoplan:                flags.AutoPlan,
 		DefaultTerraformVersion: flags.DefaultTerraformVersion,
-		MultiEnv:                flags.MultiEnv,
 		Parallel:                flags.Parallel,
 		UseWorkspaces:           flags.UseWorkspaces,
 	}

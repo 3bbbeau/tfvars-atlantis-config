@@ -8,14 +8,14 @@
 
 ## Quick start
 ### CLI
-	tfvars-atlantis-config generate --automerge --autoplan --parallel --output=atlantis.yaml
+	tfvars-atlantis-config generate --use-workspaces --automerge --autoplan --parallel --output=atlantis.yaml
 
 ### Atlantis Server Side Config
 ```yaml
 repos:
 - id: /.*/
   pre_workflow_hooks:
-    - run: tfvars-atlantis-config generate --automerge --autoplan --parallel --output=atlantis.yaml
+    - run: tfvars-atlantis-config generate --use-workspaces --automerge --autoplan --parallel --output=atlantis.yaml
 ```
 
 
@@ -51,7 +51,7 @@ parallel_apply: true
 projects:
 - name: my-terraform-dev
   dir: my-terraform
-  workflow: my-terraform-dev
+  workspace: dev
   autoplan:
     when_modified:
     - '*.tf'
@@ -59,33 +59,12 @@ projects:
     enabled: true
 - name: my-terraform-prod
   dir: my-terraform
-  workflow: my-terraform-prod
+  workspace: prod
   autoplan:
     when_modified:
     - '*.tf'
     - prod.tfvars
     enabled: true
-workflows:
-  my-terraform-dev:
-    plan:
-      steps:
-      - init
-      - plan:
-          extra_args:
-          - -var-file=dev.tfvars
-    apply:
-      steps:
-      - apply
-  my-terraform-prod:
-    plan:
-      steps:
-      - init
-      - plan:
-          extra_args:
-          - -var-file=prod.tfvars
-    apply:
-      steps:
-      - apply
 ```
 
 ## Why you should use it?
@@ -107,24 +86,49 @@ runtime.
 | `--autoplan`                  | Enable auto plan.                                                                                                | false         |
 | `--default-terraform-version` | Default terraform version to run for Atlantis. Default is determined by the Terraform version constraints.       | ""            |
 | `--debug`                     | Enable debug logging.                                                                                            | false         |
-| `--multienv`                  | Enable injection of environment specific environment variables to each workflow.                                 | false         |
 | `--output`                    | Path of the file where configuration will be generated, usually `atlantis.yaml`. Default is to write to `stdout` | `stdout`      |
 | `--parallel`                  | Enables plans and applys to happen in parallel.                                                                  | false         |
 | `--root`                      | Path to the root directory of the git repo you want to build config for. Default is current dir.                 | `.`           |
 | `--use-workspaces`            | Whether to use Terraform workspaces for projects.                                                                | false         |
 
-## Multienv
-When `--multienv` is enabled, prefixed environment variables will be
+## Workflows
+This utility does not generate workflows. You can use use the `$WORKSPACE`
+environment variable as part of a generic plan step to use the generated
+configuration.
+
+See the [multienv](#multienv--provider-configuration) for a working example.
+
+## Multienv / Provider configuration
+You can run the `multienv` command in a workflow. Prefixed environment variables will be
 stripped of their prefix and injected into each workflow for the duration
 the workflow is run during plan/apply stages.
 
-### Example
+This is useful when you want to configure providers via environment variables
+on a per-workspace basis.
 
+```
+  workflows:
+    default:
+      plan:
+        steps:
+        - init
+        - multienv: tfvars-atlantis-config multienv
+        - plan:
+            extra_args: ["-var-file", "$WORKSPACE.tfvars"]
+      apply:
+        steps:
+        - multienv: tfvars-atlantis-config multienv
+        - apply
+```
+
+### Example
+Workspace `dev`:
 _dev.tfvars_:
 
 - `DEV_FOO_VAR="BAR"` -> `FOO_VAR="BAR"`
 - `DEV_AWS_ACCESS_KEY="..."` -> `AWS_ACCESS_KEY="..."`
 
+Workspace `stg`:
 _stg.tfvars_:
 
 - `STG_FOO_VAR="BAR"` -> `FOO_VAR="BAR"`
