@@ -32,7 +32,6 @@ func Test_ProjectsFrom(t *testing.T) {
 					Project: raw.Project{
 						Name:             ptr("test-env"),
 						Dir:              ptr("test"),
-						Workflow:         ptr("test-env"),
 						Workspace:        ptr("env"),
 						TerraformVersion: ptr("8.8.8"),
 						Autoplan: &raw.Autoplan{

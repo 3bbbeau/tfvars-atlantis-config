@@ -35,6 +35,7 @@ func New() (*cobra.Command, error) {
 		return nil, fmt.Errorf("creating generate command: %w", err)
 	}
 	cmd.AddCommand(gCmd)
+	cmd.AddCommand(NewMultiEnvCmd())
 
 	return cmd, nil
 }

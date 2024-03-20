@@ -40,8 +40,7 @@ func ProjectsFrom(c Component, opts Options) ([]ExtRawProject, error) {
 				Name: ptr(friendlyName(c.Path, v)),
 
 				// The directory of this project relative to the repo root.
-				Dir:      ptr(c.Path),
-				Workflow: ptr(friendlyName(c.Path, v)),
+				Dir: ptr(c.Path),
 			},
 		}
 
