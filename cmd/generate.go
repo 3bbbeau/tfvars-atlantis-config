@@ -180,12 +180,6 @@ func discover(ctx context.Context, flags *Flags) ([]repocfg.Component, error) {
 		if !info.IsDir() && strings.HasSuffix(info.Name(), TF_EXT) {
 			logger.Debug(fmt.Sprintf("found .tf file: %s", path))
 
-			// Add the directory of the Terraform component as the parent
-			parent, err := filepath.Rel(flags.Root, filepath.Dir(path))
-			if err != nil {
-				return err
-			}
-
 			// Each edge should be a path containing Terraform variables files
 			// relative to the Terraform component
 			err = filepath.Walk(filepath.Dir(path), func(subpath string, subinfo os.FileInfo, suberr error) error {
@@ -195,19 +189,23 @@ func discover(ctx context.Context, flags *Flags) ([]repocfg.Component, error) {
 
 				// Filter out Terraform variable files
 				if !subinfo.IsDir() && (strings.HasSuffix(subinfo.Name(), TFVARS_EXT) || strings.HasSuffix(subinfo.Name(), TFVARS_JSON_EXT)) {
+					parent := subpath
 					// Ignore nested Terraform variable files that might belong to nested components
-					if filepath.Dir(subpath) != filepath.Dir(path) && tfExistsInDir(filepath.Dir(subpath)) {
+					if filepath.Dir(subpath) != filepath.Dir(path) && !tfExistsInDir(filepath.Dir(subpath)) {
 						logger.Sugar().Debugf(`ignoring nested %s: %s
 						which belongs to the component at: %s
 						not: %s`, filepath.Ext(subpath), subpath, filepath.Dir(subpath), filepath.Dir(path),
 						)
-
-						return filepath.SkipDir
+						parent = path
 					}
 
-					logger.Sugar().Debugf("component parent is %s", parent)
+					relParent, err := filepath.Rel(flags.Root, filepath.Dir(parent))
+					if err != nil {
+						return err
+					}
+					logger.Sugar().Debugf("component parent is %s", relParent)
 					found := repocfg.Component{
-						Path: parent,
+						Path: relParent,
 					}
 
 					logger.Sugar().Debugf("found %s file: %s", filepath.Ext(subpath), subpath)
