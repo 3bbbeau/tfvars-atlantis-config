@@ -9,8 +9,15 @@ import (
 func ptr[T any](v T) *T { return &v }
 
 // friendlyName creates a contextual name used for Atlantis projects
-func friendlyName(path, environment string) string {
-	name := []string{strings.ReplaceAll(path, "/", "-"), pathWithoutExtension(filepath.Base(environment))}
+func friendlyName(path, varFile string) string {
+	environment := pathWithoutExtension(filepath.Base(varFile))
+
+	// avoid constructing a joined path if the context is the current directory
+	if filepath.Base(path) == "." {
+		return environment
+	}
+
+	name := []string{strings.ReplaceAll(path, "/", "-"), environment}
 	return strings.TrimSuffix(strings.Join(name, "-"), "-")
 }
 
