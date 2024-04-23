@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/3bbbeau/tfvars-atlantis-config/logger"
@@ -168,7 +169,7 @@ const (
 func discover(ctx context.Context, flags *Flags) ([]repocfg.Component, error) {
 	logger := logger.FromContext(ctx)
 
-	var discovered []repocfg.Component
+	discovered := []repocfg.Component{}
 
 	// Walk the directory tree from the root
 	err := filepath.Walk(flags.Root, func(path string, info os.FileInfo, err error) error {
@@ -218,8 +219,27 @@ func discover(ctx context.Context, flags *Flags) ([]repocfg.Component, error) {
 					logger.Sugar().Debugf("component %s has var file %s", parent, child)
 					found.VarFiles = append(found.VarFiles, child)
 
-					discovered = append(discovered, found)
+					// Check if the component already exists in the slice
+					// If it does, ensure the var file is not a duplicate and append it.
+					exists := false
+					for idx, component := range discovered {
+						if component.Path == found.Path {
+							exists = true
+							for _, varFile := range found.VarFiles {
+								if !slices.Contains(component.VarFiles, varFile) {
+									discovered[idx].VarFiles = append(discovered[idx].VarFiles, varFile)
+								}
+							}
+						}
+					}
+
+					// If the component does not exist in the slice, then
+					// it can be treated as new component.
+					if !exists {
+						discovered = append(discovered, found)
+					}
 				}
+
 				return err
 			})
 			return filepath.SkipDir
